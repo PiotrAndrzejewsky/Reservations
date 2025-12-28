@@ -1,0 +1,36 @@
+@model IEnumerable<Reservations.Models.User>
+
+<h2>User management</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach(var u in Model)
+    {
+        <tr>
+            <td>@u.Id</td>
+            <td>@u.UserName</td>
+            <td>@u.Email</td>
+            <td>@u.Role?.Name</td>
+            <td>
+                <form asp-action="PromoteToAdmin" method="post" style="display:inline">
+                    <input type="hidden" name="userId" value="@u.Id" />
+                    <button type="submit">Make Admin</button>
+                </form>
+                <form asp-action="DeleteUser" method="post" style="display:inline; margin-left:8px;">
+                    <input type="hidden" name="userId" value="@u.Id" />
+                    <button type="submit">Delete</button>
+                </form>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

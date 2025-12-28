@@ -1,0 +1,25 @@
+@model Reservations.Controllers.SessionsController.IndexViewModel
+
+@{
+    ViewData["Title"] = "Sessions";
+    var roleId = Context.Session.GetInt32("RoleId");
+}
+
+<link rel="stylesheet" href="~/css/sessions.css" />
+
+<div class="sessions-container">
+    <h2>Sessions</h2>
+
+    @if (roleId == null)
+    {
+        <p><em>Log in to reserve or see more options.</em></p>
+    }
+
+    @if (roleId == null || (roleId.HasValue && (roleId.Value == 2 || roleId.Value == 1)))
+    {
+        <!-- Trainers and admins can see create form; users can't -->
+        @await Html.PartialAsync("_SessionsForm", Model)
+    }
+
+    @await Html.PartialAsync("_SessionsTable", Model)
+</div>
