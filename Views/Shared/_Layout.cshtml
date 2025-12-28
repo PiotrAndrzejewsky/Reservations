@@ -3,47 +3,85 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Reservations</title>
+    <title>@ViewData["Title"] - AquaWave</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <link rel="stylesheet" href="~/css/site.css" />
 </head>
 <body>
-    <header>
-        <nav>
-            <div class="nav-left">
-                <a asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                <a asp-area="" asp-controller="Sessions" asp-action="Index">Sessions</a>
-            </div>
-            <div class="nav-right">
-                @if (Context.Session.GetInt32("UserId") != null)
-                {
-                    <span class="welcome">Welcome @Context.Session.GetString("UserName")</span>
-                    <form asp-controller="Account" asp-action="Logout" method="post" style="display:inline">
-                        <button type="submit" class="nav-btn">Logout</button>
-                    </form>
-
-                    @if (Context.Session.GetInt32("RoleId") == 1)
-                    {
-                        <a class="nav-link" asp-controller="Admin" asp-action="Index">User Management</a>
-                    }
-                }
-                else
-                {
-                    <a class="nav-link" asp-controller="Account" asp-action="Login">Login</a><a class="nav-link" asp-controller="Account" asp-action="Register">Register</a>
-                }
+    <header class="nav-shell">
+        <nav class="navbar navbar-expand-lg navbar-dark glassy-nav">
+            <div class="container-fluid">
+                <a class="navbar-brand d-flex align-items-center" asp-area="" asp-controller="Home" asp-action="Index">
+                    <span class="brand-icon">&#127946;</span>
+                    <span class="ms-2">AquaWave</span>
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="mainNav">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">Start</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="Sessions" asp-action="Index">Sesje</a>
+                        </li>
+                        @if (Context.Session.GetInt32("RoleId") == 1)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Admin" asp-action="Index">Użytkownicy</a>
+                            </li>
+                        }
+                    </ul>
+                    <div class="d-flex align-items-center gap-3 nav-auth">
+                        @if (Context.Session.GetInt32("UserId") != null)
+                        {
+                            <span class="text-light small">Witaj, @Context.Session.GetString("UserName")</span>
+                            <form asp-controller="Account" asp-action="Logout" method="post" class="m-0">
+                                <button type="submit" class="btn btn-outline-light btn-sm">Wyloguj</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <a class="btn btn-light btn-sm" asp-controller="Account" asp-action="Login">Logowanie</a>
+                            <a class="btn btn-accent btn-sm" asp-controller="Account" asp-action="Register">Rejestracja</a>
+                        }
+                    </div>
+                </div>
             </div>
         </nav>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
+
+    <div class="container page-shell">
+        <main role="main" class="pb-4">
             @RenderBody()
         </main>
     </div>
 
-    <footer>
-        <hr />
-        <p>&copy; 2025 - Reservations</p>
+    <footer class="footer-shell text-light">
+        <div class="container">
+            <div class="row gy-3 align-items-center">
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="brand-icon">&#127946;</span>
+                        <div>
+                            <div class="fw-semibold">AquaWave Pływalnia Miejska</div>
+                            <div class="text-muted small">ul. Turkusowa 15, 00-100 Warszawa</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <div class="text-muted small">Tel: +48 123 456 789 · kontakt@aquawave.pl</div>
+                    <div class="text-muted small">Czynne: pn-pt 6:00-22:00 · sb-nd 7:00-21:00</div>
+                </div>
+            </div>
+            <hr class="footer-divider" />
+            <div class="text-center text-muted small">&copy; 2025 AquaWave · System rezerwacji torów</div>
+        </div>
     </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     @RenderSection("Scripts", required: false)
 </body>
 </html>

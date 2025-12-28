@@ -1,8 +1,87 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Strona główna";
 }
 
-<div class="hero">
-    <h1 class="display-4">Welcome</h1>
-    <p class="lead">Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<section class="hero-landing">
+    <div class="row align-items-center g-4">
+        <div class="col-lg-7">
+            <p class="badge text-bg-light text-uppercase mb-3">System rezerwacji torów</p>
+            <h1 class="hero-title">Witaj na Pływalni AquaWave</h1>
+            <p class="hero-subtitle">Zarezerwuj swój tor w kilka sekund, sprawdź grafik zajęć i trenuj z najlepszymi instruktorami. Komfort, bezpieczeństwo i profesjonalizm na wyciągnięcie ręki.</p>
+            <div class="d-flex gap-3 flex-wrap">
+                <a class="btn btn-accent btn-lg" asp-controller="Sessions" asp-action="Index">Zarezerwuj tor</a>
+                <a class="btn btn-outline-light btn-lg" asp-controller="Sessions" asp-action="Index">Zobacz grafik</a>
+            </div>
+            <div class="d-flex gap-3 flex-wrap hero-meta mt-3 text-light">
+                <div class="d-flex align-items-center gap-2"><i class="bi bi-shield-check"></i> Certyfikowani ratownicy</div>
+                <div class="d-flex align-items-center gap-2"><i class="bi bi-wifi"></i> Strefa relaksu i Wi-Fi</div>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="hero-card text-light">
+                <div class="hero-card__header">
+                    <div>
+                        <div class="small text-uppercase text-muted">Dziś na pływalni</div>
+                        <div class="h4 mb-0">Rezerwacje online 24/7</div>
+                    </div>
+                    <div class="badge bg-accent-soft text-accent fw-semibold">Nowość</div>
+                </div>
+                <div class="hero-card__body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Wolne tory</span>
+                        <span class="fw-semibold">12</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Najbliższa sesja</span>
+                        <span class="fw-semibold">17:30</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3">
+                        <span>Strefa treningu</span>
+                        <span class="fw-semibold">Open</span>
+                    </div>
+                    <a class="btn btn-accent w-100" asp-controller="Sessions" asp-action="Index">Zaplanuj trening</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="features py-5">
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="feature-card h-100">
+                <div class="icon-circle">🏊‍♂️</div>
+                <h3>Profesjonalni trenerzy</h3>
+                <p>Indywidualne podejście, plan treningowy i wsparcie na każdym etapie nauki pływania.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="feature-card h-100">
+                <div class="icon-circle">📅</div>
+                <h3>Elastyczny grafik</h3>
+                <p>Rezerwuj sesje w dogodnych godzinach, od świtu do późnego wieczora – także w weekendy.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="feature-card h-100">
+                <div class="icon-circle">🏟️</div>
+                <h3>Nowoczesny obiekt</h3>
+                <p>Baseny sportowe i rekreacyjne, strefa SPA oraz bezpieczne zaplecze dla rodzin.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="info panel py-4">
+    <div class="row align-items-center g-3">
+        <div class="col-md-6">
+            <h4>Godziny otwarcia</h4>
+            <p class="mb-1">Poniedziałek – Piątek: 06:00 – 22:00</p>
+            <p class="mb-1">Sobota – Niedziela: 07:00 – 21:00</p>
+            <p class="text-muted mb-0">Zapraszamy do wcześniejszych rezerwacji online, aby mieć pewność dostępności toru.</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <a class="btn btn-accent" asp-controller="Sessions" asp-action="Index">Sprawdź dostępność torów</a>
+        </div>
+    </div>
+</section>
