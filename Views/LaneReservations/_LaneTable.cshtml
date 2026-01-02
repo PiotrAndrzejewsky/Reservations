@@ -1,0 +1,42 @@
+@model Reservations.Controllers.LaneReservationsController.IndexViewModel
+@{
+    var lanes = Model.Lanes;
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="error">@TempData["Error"]</div>
+}
+@if (TempData["Info"] != null)
+{
+    <div class="info">@TempData["Info"]</div>
+}
+
+<table class="session-table time-grid">
+    <thead>
+        <tr>
+            <th class="time-header">Godzina</th>
+            @foreach (var lane in lanes)
+            {
+                <th class="lane-header">@lane.Name<br /><small>max @lane.Capacity</small></th>
+            }
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var slot in Model.Slots)
+    {
+        <tr>
+            <td class="time-col">@slot.StartLocal.ToString("d.MM.yyyy HH:mm")</td>
+            @foreach (var lane in lanes)
+            {
+                var count = slot.LaneCounts.TryGetValue(lane.Id, out var c) ? c : 0;
+                var isFull = count >= lane.Capacity;
+                <td class="lane-cell @(isFull ? "full" : "")">
+                    <div class="lane-count">@count / @lane.Capacity</div>
+                    <div class="lane-status @(isFull ? "busy" : "free")">@(isFull ? "Zajêty" : "Wolny")</div>
+                </td>
+            }
+        </tr>
+    }
+    </tbody>
+</table>

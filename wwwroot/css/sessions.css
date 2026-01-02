@@ -1,29 +1,51 @@
 /* Styles for Sessions page - simple and reusable */
 .sessions-container {
-  max-width: 900px;
-  margin: 20px auto;
-  padding: 12px;
-  background: #fff;
-  border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    max-width: 1100px;
+    margin: 24px auto;
+    padding: 14px;
+    background: rgba(255,255,255,0.95);
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+    color: #000;
 }
 
-.session-form { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
-.session-form label { min-width: 90px; font-weight: 600; }
+.date-selector { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; }
+.date-selector input[type="date"] { padding: 6px 10px; border: 1px solid #ccc; border-radius: 6px; color: #000; }
+
+.session-form { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; color: #000; }
+.session-form label { min-width: 90px; font-weight: 600; color: #000; }
 .session-form input[type="text"], .session-form input[type="number"], .session-form input[type="datetime-local"] {
   padding: 6px 8px;
   border: 1px solid #ccc;
   border-radius: 4px;
+  color: #000;
 }
 
 .session-form .field { display: flex; gap: 8px; align-items: center; }
 
-.session-table { width: 100%; border-collapse: collapse; margin-top: 18px; }
-.session-table th, .session-table td { padding: 8px 10px; border-bottom: 1px solid #eee; text-align: left; }
-.session-table th { background: #f7f7f7; font-weight: 700; }
-
-.btn { background: #007bff; color: #fff; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; }
+.session-table { width: 100%; border-collapse: collapse; margin-top: 8px; color: #000; table-layout: fixed; }
+.session-table th, .session-table td { padding: 10px; border: 1px solid #e5e5e5; }
+.session-table th { background: #f5f5f5; font-weight: 700; text-align: center; }
+.time-grid .time-col { font-weight: 700; white-space: nowrap; text-align: left; }
+.time-grid .lane-header { text-align: center; }
+.time-grid .lane-cell { text-align: center; vertical-align: middle; }
+.time-grid .lane-cell.full { background: #fff2f2; }
+.lane-count { font-weight: 700; margin-bottom: 6px; }
+.lane-full { color: #c00; font-size: 12px; }
+.lane-status { font-size: 12px; font-weight: 700; margin-bottom: 6px; }
+.lane-status.free { color: #1b8733; }
+.lane-status.busy { color: #c00; }
+.inline-form { display: inline-block; }
+.btn { background: #0d6efd; color: #fff; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
+.btn.btn-outline { background: #fff; color: #0d6efd; border: 1px solid #0d6efd; }
 .btn:disabled { opacity: 0.6; cursor: default; }
+.range-form { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+.range-form select, .range-form input[type="time"] { padding: 6px 10px; border: 1px solid #ccc; border-radius: 6px; color: #000; }
+
+@media (max-width: 900px) {
+  .sessions-container { padding: 10px; }
+  .session-table th, .session-table td { padding: 8px; font-size: 13px; }
+}
 
 @media (max-width: 600px) {
   .session-form { flex-direction: column; align-items: stretch; }

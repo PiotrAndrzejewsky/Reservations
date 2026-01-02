@@ -27,6 +27,9 @@
                         <li class="nav-item">
                             <a class="nav-link" asp-area="" asp-controller="Sessions" asp-action="Index">Sesje</a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="LaneReservations" asp-action="Index">Rezerwacje torów</a>
+                        </li>
                         @if (Context.Session.GetInt32("RoleId") == 1)
                         {
                             <li class="nav-item">

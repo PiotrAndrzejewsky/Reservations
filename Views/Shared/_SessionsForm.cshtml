@@ -8,11 +8,11 @@
     </div>
     <div class="field">
         <label asp-for="NewSession.Start">Start</label>
-        <input asp-for="NewSession.Start" type="datetime-local" />
+        <input asp-for="NewSession.Start" type="datetime-local" step="1800" />
     </div>
     <div class="field">
         <label asp-for="NewSession.End">End</label>
-        <input asp-for="NewSession.End" type="datetime-local" />
+        <input asp-for="NewSession.End" type="datetime-local" step="1800" />
     </div>
     <div class="field">
         <label asp-for="NewSession.AvailableSlots">Slots</label>
