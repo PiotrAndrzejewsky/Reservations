@@ -9,17 +9,27 @@ namespace Reservations.Controllers
     public class SessionsController : Controller
     {
         private readonly ReservationsDbContext _db;
+        private const int SlotMinutes = 30;
 
         public SessionsController(ReservationsDbContext db)
         {
             _db = db;
         }
 
+        private static DateTime AlignToSlotUtc(DateTime dt)
+        {
+            var utc = dt.Kind == DateTimeKind.Utc ? dt : dt.ToUniversalTime();
+            var minutes = utc.Minute;
+            var alignedMinutes = minutes < SlotMinutes ? 0 : SlotMinutes;
+            return new DateTime(utc.Year, utc.Month, utc.Day, utc.Hour, alignedMinutes, 0, DateTimeKind.Utc);
+        }
+
         public class SessionInputModel
         {
+            private static DateTime DefaultStartUtc => AlignToSlotUtc(DateTime.UtcNow);
             public string Title { get; set; } = string.Empty;
-            public DateTime Start { get; set; } = DateTime.UtcNow;
-            public DateTime End { get; set; } = DateTime.UtcNow.AddHours(1);
+            public DateTime Start { get; set; } = DefaultStartUtc;
+            public DateTime End { get; set; } = DefaultStartUtc.AddMinutes(SlotMinutes);
             public int AvailableSlots { get; set; } = 10;
         }
 
@@ -40,15 +50,24 @@ namespace Reservations.Controllers
             return View(vm);
         }
 
+        private bool IsStepValid(DateTime dt) => dt.Minute % SlotMinutes == 0 && dt.Second == 0 && dt.Millisecond == 0;
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         [RoleAuthorize("Trainer", "Administrator")]
-        public async Task<IActionResult> Create(SessionInputModel input)
+        public async Task<IActionResult> Create([Bind(Prefix = "NewSession")] SessionInputModel input)
         {
             if (!ModelState.IsValid)
             {
-                var vm = new IndexViewModel { Sessions = await _db.Sessions.OrderBy(s => s.Start).ToListAsync(), NewSession = input };
-                return View("Index", vm);
+                var vmInvalid = new IndexViewModel { Sessions = await _db.Sessions.OrderBy(s => s.Start).ToListAsync(), NewSession = input };
+                return View("Index", vmInvalid);
+            }
+
+            if (!IsStepValid(input.Start) || !IsStepValid(input.End) || input.End <= input.Start)
+            {
+                TempData["Error"] = "Czas musi byæ w krokach co 30 minut, bez sekund, a koniec po pocz¹tku.";
+                var vmError = new IndexViewModel { Sessions = await _db.Sessions.OrderBy(s => s.Start).ToListAsync(), NewSession = input };
+                return View("Index", vmError);
             }
 
             DateTime startLocal = DateTime.SpecifyKind(input.Start, DateTimeKind.Local);

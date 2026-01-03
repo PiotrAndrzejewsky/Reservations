@@ -1,0 +1,70 @@
+@model Reservations.Controllers.LaneReservationsController.IndexViewModel
+@{
+    var lanes = Model.Lanes;
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="error">@TempData["Error"]</div>
+}
+@if (TempData["Info"] != null)
+{
+    <div class="info">@TempData["Info"]</div>
+}
+
+<table class="session-table time-grid">
+    <thead>
+        <tr>
+            <th class="time-header">Godzina</th>
+            @foreach (var lane in lanes)
+            {
+                <th class="lane-header">@lane.Name<br /><small>max @lane.Capacity</small></th>
+            }
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var slot in Model.Slots)
+    {
+        <tr>
+            <td class="time-col">@slot.StartLocal.ToString("d.MM.yyyy HH:mm")</td>
+            @foreach (var lane in lanes)
+            {
+                var count = slot.LaneCounts.TryGetValue(lane.Id, out var c) ? c : 0;
+                var isFull = count >= lane.Capacity;
+                var userId = Model.UserId;
+                bool userReserved = false;
+                if (userId != null)
+                {
+                    // check if the user has a reservation in this slot
+                    var db = Context.RequestServices.GetService(typeof(Reservations.Data.ReservationsDbContext)) as Reservations.Data.ReservationsDbContext;
+                    userReserved = db?.Reservations.Any(r => r.LaneId == lane.Id && r.SlotStart == slot.SlotStartUtc && r.UserId == userId) ?? false;
+                }
+
+                <td class="lane-cell @(isFull ? "full" : "")">
+                    <div class="lane-count">@count / @lane.Capacity</div>
+                    <div class="lane-status @(isFull ? "busy" : "free")">@(isFull ? "Zajêty" : "Wolny")</div>
+
+                    @if (userId != null && !userReserved && !isFull)
+                    {
+                        <form asp-action="ReserveSlot" method="post" class="inline-form">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="slotStart" value="@slot.SlotStartUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")" />
+                            <input type="hidden" name="laneId" value="@lane.Id" />
+                            <button class="btn btn-primary">Zarezerwuj</button>
+                        </form>
+                    }
+                    else if (userId != null && userReserved)
+                    {
+                        <form asp-action="UnreserveLane" method="post" class="inline-form">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="slotStart" value="@slot.SlotStartUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")" />
+                            <input type="hidden" name="laneId" value="@lane.Id" />
+                            <button class="btn btn-warning">Anuluj</button>
+                        </form>
+                    }
+                </td>
+            }
+        </tr>
+    }
+    </tbody>
+</table>

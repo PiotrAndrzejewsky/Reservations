@@ -24,16 +24,15 @@ namespace Reservations.Filters
             var http = context.HttpContext;
             var sess = http.Session;
             var userId = sess.GetInt32("UserId");
-            var roleId = sess.GetInt32("RoleId");
 
-            if (userId == null || roleId == null)
+            if (userId == null)
             {
                 // not logged in
                 context.Result = new RedirectToActionResult("Login", "Account", new { returnUrl = http.Request.Path + http.Request.QueryString });
                 return;
             }
 
-            // Resolve allowed role ids from DB roles (safer than hardcoding)
+            // Resolve DB and user with role
             var db = http.RequestServices.GetService(typeof(ReservationsDbContext)) as ReservationsDbContext;
             if (db == null)
             {
@@ -41,21 +40,29 @@ namespace Reservations.Filters
                 return;
             }
 
-            var allowedRoleIds = new List<int>();
-            foreach (var r in _roles)
+            var user = await db.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.Id == userId.Value);
+            if (user == null)
             {
-                var role = await db.Roles.FirstOrDefaultAsync(x => x.Name == r);
-                if (role != null) allowedRoleIds.Add(role.Id);
+                // session references missing user
+                context.Result = new RedirectToActionResult("Login", "Account", new { returnUrl = http.Request.Path + http.Request.QueryString });
+                return;
             }
 
-            if (!allowedRoleIds.Any())
+            var userRoleName = user.Role?.Name;
+            if (string.IsNullOrEmpty(userRoleName))
             {
-                // Nothing resolved -> deny
                 context.Result = new ForbidResult();
                 return;
             }
 
-            if (!allowedRoleIds.Contains(roleId.Value))
+            if (_roles == null || _roles.Length == 0)
+            {
+                context.Result = new ForbidResult();
+                return;
+            }
+
+            // Check if user's role name matches any of allowed roles (case-insensitive)
+            if (!_roles.Any(r => string.Equals(r, userRoleName, StringComparison.OrdinalIgnoreCase)))
             {
                 context.Result = new ForbidResult();
                 return;

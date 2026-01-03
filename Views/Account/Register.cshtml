@@ -1,39 +1,50 @@
 @{
-    ViewData["Title"] = "Register";
+    ViewData["Title"] = "Rejestracja";
 }
 
-<h2>Register</h2>
+<div class="page-shell">
+    <div class="panel" style="max-width:640px; margin:24px auto;">
+        <h2>Rejestracja</h2>
 
-<form asp-action="Register" method="post">
-    @Html.AntiForgeryToken()
-    <div>
-        <label>Username</label>
-        <input name="username" />
-    </div>
-    <div>
-        <label>Email</label>
-        <input name="email" />
-    </div>
-    <div>
-        <label>Password</label>
-        <input name="password" type="password" />
-    </div>
-    <div>
-        <label>Register as</label>
-        <select name="role">
-            <option value="3">User</option>
-            <option value="2">Trainer</option>
-        </select>
-    </div>
-    <button type="submit">Register</button>
-</form>
+        <form asp-action="Register" method="post">
+            @Html.AntiForgeryToken()
 
-@if (!ViewData.ModelState.IsValid)
-{
-    <ul>
-        @foreach (var v in ViewData.ModelState.Values.SelectMany(x => x.Errors))
+            <div class="mb-3">
+                <label class="form-label">Nazwa u¿ytkownika</label>
+                <input name="username" class="form-control" placeholder="Nazwa u¿ytkownika" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input name="email" class="form-control" placeholder="Email" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Has³o</label>
+                <input name="password" type="password" class="form-control" placeholder="Has³o" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Rejestruj jako</label>
+                <select name="role" class="form-control">
+                    <option value="3">U¿ytkownik</option>
+                    <option value="2">Trener</option>
+                </select>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-accent">Zarejestruj siê</button>
+                <a class="btn btn-outline-light" asp-controller="Account" asp-action="Login">Zaloguj siê</a>
+            </div>
+        </form>
+
+        @if (!ViewData.ModelState.IsValid)
         {
-            <li>@v.ErrorMessage</li>
+            <div class="error" style="margin-top:12px;">
+                <ul class="mb-0">
+                    @foreach (var v in ViewData.ModelState.Values.SelectMany(x => x.Errors))
+                    {
+                        <li>@v.ErrorMessage</li>
+                    }
+                </ul>
+            </div>
         }
-    </ul>
-}
+    </div>
+</div>

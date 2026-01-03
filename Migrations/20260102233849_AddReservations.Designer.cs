@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Reservations.Data;
@@ -11,9 +12,11 @@ using Reservations.Data;
 namespace Reservations.Migrations
 {
     [DbContext(typeof(ReservationsDbContext))]
-    partial class ReservationsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260102233849_AddReservations")]
+    partial class AddReservations
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -40,6 +43,44 @@ namespace Reservations.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Lanes");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Capacity = 1,
+                            Name = "Tor 1"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Capacity = 1,
+                            Name = "Tor 2"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Capacity = 1,
+                            Name = "Tor 3"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Capacity = 1,
+                            Name = "Tor 4"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Capacity = 1,
+                            Name = "Tor 5"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Capacity = 1,
+                            Name = "Tor 6"
+                        });
                 });
 
             modelBuilder.Entity("Reservations.Models.Reservation", b =>
@@ -58,9 +99,6 @@ namespace Reservations.Migrations
 
                     b.Property<int?>("SessionId")
                         .HasColumnType("integer");
-
-                    b.Property<DateTime?>("SlotStart")
-                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("UserId")
                         .HasColumnType("integer");

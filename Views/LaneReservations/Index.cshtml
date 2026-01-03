@@ -1,0 +1,36 @@
+@model Reservations.Controllers.LaneReservationsController.IndexViewModel
+@{
+    ViewData["Title"] = "Rezerwacje torów";
+}
+
+<link rel="stylesheet" href="~/css/sessions.css" />
+
+<div class="sessions-container">
+    <h2>Rezerwacje torów</h2>
+
+    <form asp-action="ChangeDate" method="post" class="date-selector">
+        @Html.AntiForgeryToken()
+        <label for="date">Data:</label>
+        <input type="date" id="date" name="date" value="@Model.Date.ToString("yyyy-MM-dd")" />
+        <button class="btn" type="submit">Poka¿</button>
+    </form>
+
+    <form asp-action="ReserveRange" method="post" class="range-form">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="date" value="@Model.Date.ToString("yyyy-MM-dd")" />
+        <label for="laneId">Tor:</label>
+        <select id="laneId" name="laneId">
+            @foreach (var lane in Model.Lanes)
+            {
+                <option value="@lane.Id">@lane.Name</option>
+            }
+        </select>
+        <label for="startTime">Od:</label>
+        <input type="time" id="startTime" name="startTime" step="1800" value="06:00" />
+        <label for="endTime">Do:</label>
+        <input type="time" id="endTime" name="endTime" step="1800" value="06:30" />
+        <button class="btn" type="submit">Rezerwuj zakres</button>
+    </form>
+
+    @await Html.PartialAsync("_LaneTable", Model)
+</div>

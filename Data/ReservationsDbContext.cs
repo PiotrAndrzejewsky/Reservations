@@ -46,6 +46,12 @@ namespace Reservations.Data
                     PasswordHash = HashPassword("admin")
                 }
             );
+
+            // Map SlotStart as UTC timestamp column
+            modelBuilder.Entity<Reservation>(eb =>
+            {
+                eb.Property(r => r.SlotStart).HasColumnType("timestamp with time zone").IsRequired(false);
+            });
         }
     }
 }

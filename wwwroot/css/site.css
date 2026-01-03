@@ -23,6 +23,8 @@ html, body {
   color: var(--text);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  display: flex;
+  flex-direction: column;
 }
 
 a { color: var(--cyan-200); }
@@ -52,7 +54,12 @@ a:hover { color: #fff; }
 .bg-accent-soft { background: rgba(12, 154, 255, 0.12); }
 .text-accent { color: #18baff; }
 
-.page-shell { max-width: 1180px; margin: 24px auto 32px; padding: 0 18px; }
+.page-shell {
+  max-width: 1180px;
+  margin: 24px auto 32px;
+  padding: 0 18px;
+  flex: 1 0 auto;
+}
 
 .hero-landing {
   background: radial-gradient(circle at 30% 20%, rgba(12,154,255,0.18), transparent 25%),
@@ -123,7 +130,7 @@ a:hover { color: #fff; }
 .footer-shell {
   background: #020f24;
   padding: 28px 0 18px;
-  margin-top: 32px;
+  margin-top: auto;
   box-shadow: 0 -10px 35px rgba(0, 16, 36, 0.55);
 }
 .footer-shell .brand-icon { font-size: 20px; }
@@ -150,3 +157,150 @@ input:focus, select:focus, textarea:focus { border-color: #18baff; box-shadow: 0
   .hero-landing { padding: 26px 20px; }
   .page-shell { margin-top: 14px; }
 }
+
+/* Nav auth button styles override to ensure visible and themed */
+.nav-auth .btn {
+  border-radius: 10px;
+  font-weight: 600;
+  padding: 6px 14px;
+  box-shadow: none;
+  border: none;
+}
+
+.nav-auth .btn.btn-light {
+  background: #ffffff;
+  color: var(--blue-800);
+  border: 1px solid rgba(0,0,0,0.06);
+}
+
+.nav-auth .btn.btn-light:hover {
+  background: #f3f6fb;
+  color: var(--blue-800);
+}
+
+.nav-auth .btn.btn-accent {
+  background: linear-gradient(120deg, var(--blue-800), #18baff);
+  color: #fff;
+  border: none;
+  box-shadow: var(--shadow-soft);
+}
+
+.nav-auth .btn.btn-accent:hover {
+  filter: brightness(1.05);
+}
+
+/* ensure small variant keeps padding */
+.nav-auth .btn-sm {
+  padding: 6px 12px;
+}
+
+/* form controls */
+.form-label { display: block; margin-bottom: 6px; font-weight: 600; color: var(--text); }
+.form-control {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #fff;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+  box-shadow: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.form-control:focus {
+  outline: none;
+  border-color: #18baff;
+  box-shadow: 0 0 0 0.12rem rgba(24,186,255,0.12);
+}
+
+/* spacing helpers used in forms */
+.mb-3 { margin-bottom: 12px; }
+.d-flex { display: flex; }
+.gap-2 { gap: 8px; }
+
+/* buttons - base */
+.btn {
+  display: inline-block;
+  padding: 8px 12px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  text-decoration: none;
+  text-align: center;
+  vertical-align: middle;
+}
+
+/* outline light already used */
+.btn-outline-light {
+  background: transparent;
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.12);
+}
+
+/* ensure small buttons keep padding */
+.btn-sm { padding: 6px 10px; }
+
+/* Fallback: style plain inputs/buttons inside panels in case markup lacks classes */
+.panel input[type="text"],
+.panel input[type="password"],
+.panel input[type="email"],
+.panel input[type="number"],
+.panel select,
+.panel textarea,
+.panel input[type="date"],
+.panel input[type="time"] {
+  /* mirror .form-control */
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #fff;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+  box-shadow: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.panel input:focus, .panel select:focus, .panel textarea:focus {
+  outline: none;
+  border-color: #18baff;
+  box-shadow: 0 0 0 0.12rem rgba(24,186,255,0.12);
+}
+
+/* Buttons inside panels */
+.panel .btn,
+.panel button,
+.panel input[type="submit"] {
+  display: inline-block;
+  padding: 8px 12px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  text-decoration: none;
+  text-align: center;
+  vertical-align: middle;
+}
+
+/* primary accent for buttons in panels */
+.panel .btn-accent,
+.panel button.btn-accent,
+.panel input[type="submit"].btn-accent {
+  background: linear-gradient(120deg, var(--blue-800), #18baff);
+  color: #fff;
+  border: none;
+  box-shadow: var(--shadow-soft);
+}
+
+.panel .btn-outline-light,
+.panel button.btn-outline-light,
+.panel input[type="submit"].btn-outline-light {
+  background: transparent;
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.12);
+}
+
+/* ensure links styled as buttons inside panel */
+.panel a.btn { display: inline-block; }

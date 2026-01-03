@@ -12,11 +12,11 @@
 <table class="session-table">
     <thead>
         <tr>
-            <th>Title</th>
+            <th>Tytu³</th>
             <th>Start</th>
-            <th>End</th>
-            <th>Slots</th>
-            <th>Actions</th>
+            <th>Koniec</th>
+            <th>Miejsca</th>
+            <th>Akcje</th>
         </tr>
     </thead>
     <tbody>
@@ -51,7 +51,7 @@
                     <form asp-action="Reserve" method="post" style="display:inline">
                         @Html.AntiForgeryToken()
                         <input type="hidden" name="sessionId" value="@s.Id" />
-                        <button class="btn" type="submit">Reserve</button>
+                        <button class="btn" type="submit">Zarezerwuj</button>
                     </form>
                 }
                 else if (isLoggedIn && !isTrainer && hasReserved)
@@ -59,7 +59,7 @@
                     <form asp-action="Unreserve" method="post" style="display:inline">
                         @Html.AntiForgeryToken()
                         <input type="hidden" name="sessionId" value="@s.Id" />
-                        <button class="btn" type="submit">Unreserve</button>
+                        <button class="btn" type="submit">Anuluj rezerwacjê</button>
                     </form>
                 }
 
@@ -68,7 +68,7 @@
                     <form asp-action="DeleteSession" method="post" style="display:inline; margin-left:8px;">
                         @Html.AntiForgeryToken()
                         <input type="hidden" name="sessionId" value="@s.Id" />
-                        <button class="btn" type="submit">Delete</button>
+                        <button class="btn btn-danger" type="submit">Usuñ</button>
                     </form>
                 }
             </td>

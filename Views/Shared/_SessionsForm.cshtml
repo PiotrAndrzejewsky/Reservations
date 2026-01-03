@@ -3,22 +3,22 @@
 <form asp-action="Create" method="post" class="session-form">
     @Html.AntiForgeryToken()
     <div class="field">
-        <label asp-for="NewSession.Title">Title</label>
-        <input asp-for="NewSession.Title" />
+        <label asp-for="NewSession.Title">Tytu³</label>
+        <input asp-for="NewSession.Title" placeholder="Nazwa sesji" />
     </div>
     <div class="field">
         <label asp-for="NewSession.Start">Start</label>
-        <input asp-for="NewSession.Start" type="datetime-local" />
+        <input asp-for="NewSession.Start" type="datetime-local" step="1800" />
     </div>
     <div class="field">
-        <label asp-for="NewSession.End">End</label>
-        <input asp-for="NewSession.End" type="datetime-local" />
+        <label asp-for="NewSession.End">Koniec</label>
+        <input asp-for="NewSession.End" type="datetime-local" step="1800" />
     </div>
     <div class="field">
-        <label asp-for="NewSession.AvailableSlots">Slots</label>
+        <label asp-for="NewSession.AvailableSlots">Miejsca</label>
         <input asp-for="NewSession.AvailableSlots" type="number" min="1" />
     </div>
     <div class="field">
-        <button class="btn" type="submit">Create</button>
+        <button class="btn" type="submit">Utwórz sesjê</button>
     </div>
 </form>
