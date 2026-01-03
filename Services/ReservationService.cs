@@ -13,13 +13,6 @@ namespace Reservations.Services
             _db = db;
         }
 
-        public async Task<Reservation> CreateReservationAsync(int userId, int? sessionId, int? laneId)
-        {
-            // If laneId provided, we expect SlotStart to be encoded in sessionId as ticks?
-            // New approach: sessionId == null and laneId != null must be accompanied by SlotStart set via an overload.
-            throw new NotSupportedException("Use CreateLaneReservationAsync or CreateSessionReservationAsync for explicit behavior.");
-        }
-
         public async Task<Reservation> CreateLaneReservationAsync(int userId, int laneId, DateTime slotStartUtc)
         {
             var lane = await _db.Lanes.FindAsync(laneId);
