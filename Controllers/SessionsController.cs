@@ -55,7 +55,7 @@ namespace Reservations.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [RoleAuthorize("Trainer", "Administrator")]
-        public async Task<IActionResult> Create(SessionInputModel input)
+        public async Task<IActionResult> Create([Bind(Prefix = "NewSession")] SessionInputModel input)
         {
             if (!ModelState.IsValid)
             {

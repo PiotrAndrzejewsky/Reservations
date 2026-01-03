@@ -36,7 +36,7 @@ namespace Reservations.Controllers
         {
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
             {
-                ModelState.AddModelError("", "Username and password are required");
+                ModelState.AddModelError("", "Nazwa u¿ytkownika i has³o s¹ wymagane");
                 return View();
             }
 
@@ -44,7 +44,7 @@ namespace Reservations.Controllers
             var user = _db.Users.FirstOrDefault(u => u.UserName == username && u.PasswordHash == hash);
             if (user == null)
             {
-                ModelState.AddModelError("", "Invalid credentials");
+                ModelState.AddModelError("", "Nieprawid³owe dane logowania");
                 return View();
             }
 
@@ -85,13 +85,13 @@ namespace Reservations.Controllers
 
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
             {
-                ModelState.AddModelError("", "Username and password are required");
+                ModelState.AddModelError("", "Nazwa u¿ytkownika i has³o s¹ wymagane");
                 return View();
             }
 
             if (_db.Users.Any(u => u.UserName == username))
             {
-                ModelState.AddModelError("", "Username already exists");
+                ModelState.AddModelError("", "Nazwa u¿ytkownika ju¿ istnieje");
                 return View();
             }
 

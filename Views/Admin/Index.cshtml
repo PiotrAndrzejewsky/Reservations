@@ -1,36 +1,62 @@
 @model IEnumerable<Reservations.Models.User>
 
-<h2>User management</h2>
+@{
+    ViewData["Title"] = "Zarz¹dzanie u¿ytkownikami";
+    var currentUserId = Context.Session.GetInt32("UserId");
+}
 
-<table>
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Username</th>
-            <th>Email</th>
-            <th>Role</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-    @foreach(var u in Model)
-    {
-        <tr>
-            <td>@u.Id</td>
-            <td>@u.UserName</td>
-            <td>@u.Email</td>
-            <td>@u.Role?.Name</td>
-            <td>
-                <form asp-action="PromoteToAdmin" method="post" style="display:inline">
-                    <input type="hidden" name="userId" value="@u.Id" />
-                    <button type="submit">Make Admin</button>
-                </form>
-                <form asp-action="DeleteUser" method="post" style="display:inline; margin-left:8px;">
-                    <input type="hidden" name="userId" value="@u.Id" />
-                    <button type="submit">Delete</button>
-                </form>
-            </td>
-        </tr>
-    }
-    </tbody>
-</table>
+<div class="page-shell">
+    <div class="panel" style="max-width:980px; margin:24px auto;">
+        <h2>Zarz¹dzanie u¿ytkownikami</h2>
+
+        <table class="table table-borderless table-striped">
+            <thead>
+                <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Nazwa u¿ytkownika</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Rola</th>
+                    <th scope="col">Akcje</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach(var u in Model)
+            {
+                var roleName = u.Role?.Name;
+                var rolePolish = roleName == "Trainer" ? "Trener" : roleName == "User" ? "U¿ytkownik" : roleName == "Administrator" ? "Administrator" : roleName;
+                <tr>
+                    <td>@u.Id</td>
+                    <td>@u.UserName</td>
+                    <td>@u.Email</td>
+                    <td>@rolePolish</td>
+                    <td>
+                        @* Show promote button only when user is not already Administrator *@
+                        @if (!string.Equals(roleName, "Administrator", StringComparison.OrdinalIgnoreCase))
+                        {
+                            <form asp-action="PromoteToAdmin" method="post" style="display:inline" onsubmit="return confirm('Czy na pewno chcesz nadaæ uprawnienia administratora u¿ytkownikowi @u.UserName?');">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="userId" value="@u.Id" />
+                                <button type="submit" class="btn btn-outline-light btn-sm">Nadaj admina</button>
+                            </form>
+                        }
+
+                        @* Prevent deleting yourself *@
+                        @if (currentUserId == null || currentUserId != u.Id)
+                        {
+                            <form asp-action="DeleteUser" method="post" style="display:inline; margin-left:8px;" onsubmit="return confirm('Czy na pewno chcesz usun¹æ u¿ytkownika @u.UserName?');">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="userId" value="@u.Id" />
+                                <button type="submit" class="btn btn-danger btn-sm">Usuñ</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <button class="btn btn-secondary btn-sm" title="Nie mo¿na usun¹æ w³asnego konta" disabled>Usuñ</button>
+                        }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

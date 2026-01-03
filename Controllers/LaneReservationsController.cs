@@ -2,23 +2,26 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Reservations.Data;
 using Reservations.Models;
+using Reservations.Services;
 
 namespace Reservations.Controllers
 {
     public class LaneReservationsController : Controller
     {
         private readonly ReservationsDbContext _db;
+        private readonly IReservationService _reservationService;
         private static readonly TimeSpan SlotLength = TimeSpan.FromMinutes(30);
 
-        public LaneReservationsController(ReservationsDbContext db)
+        public LaneReservationsController(ReservationsDbContext db, IReservationService reservationService)
         {
             _db = db;
+            _reservationService = reservationService;
         }
 
         public class SlotRow
         {
-            public Session Session { get; set; } = null!;
-            public DateTime StartLocal => Session.Start.ToLocalTime();
+            public DateTime SlotStartUtc { get; set; }
+            public DateTime StartLocal => SlotStartUtc.ToLocalTime();
             public Dictionary<int, int> LaneCounts { get; set; } = new();
         }
 
@@ -59,72 +62,55 @@ namespace Reservations.Controllers
             }
         }
 
-        private async Task EnsureDailySlots(DateTime date)
+        private async Task<IndexViewModel> BuildViewModel(DateTime date)
         {
+            await EnsureLanesAsync();
+
             var (start, end) = GetDailyRange(date.DayOfWeek);
             var localStart = date.Date.Add(start);
             var localEnd = date.Date.Add(end);
 
-            var existing = await _db.Sessions
-                .Where(s => s.Start >= DateTime.SpecifyKind(localStart, DateTimeKind.Local).ToUniversalTime() &&
-                            s.End <= DateTime.SpecifyKind(localEnd, DateTimeKind.Local).ToUniversalTime())
-                .ToDictionaryAsync(s => s.Start, s => s);
+            var rangeStartUtc = DateTime.SpecifyKind(localStart, DateTimeKind.Local).ToUniversalTime();
+            var rangeEndUtc = DateTime.SpecifyKind(localEnd, DateTimeKind.Local).ToUniversalTime();
 
-            var toAdd = new List<Session>();
+            var lanes = await _db.Lanes.OrderBy(l => l.Id).Take(6).ToListAsync();
+
+            // Load reservations for lanes that have SlotStart in the range
+            var reservations = await _db.Reservations
+                .Where(r => r.LaneId != null && r.SlotStart != null && r.SlotStart >= rangeStartUtc && r.SlotStart < rangeEndUtc)
+                .ToListAsync();
+
+            // Build slots in memory
+            var slots = new List<SlotRow>();
             for (var t = localStart; t < localEnd; t = t.Add(SlotLength))
             {
-                var startUtc = DateTime.SpecifyKind(t, DateTimeKind.Local).ToUniversalTime();
-                if (!existing.ContainsKey(startUtc))
+                var slotStartUtc = DateTime.SpecifyKind(t, DateTimeKind.Local).ToUniversalTime();
+                var row = new SlotRow
                 {
-                    toAdd.Add(new Session
+                    SlotStartUtc = slotStartUtc,
+                    LaneCounts = lanes.ToDictionary(l => l.Id, l => 0)
+                };
+
+                slots.Add(row);
+            }
+
+            // Populate counts
+            var resBySlotAndLane = reservations
+                .GroupBy(r => (r.SlotStart!.Value, r.LaneId!.Value))
+                .ToDictionary(g => g.Key, g => g.Count());
+
+            foreach (var slot in slots)
+            {
+                foreach (var lane in lanes)
+                {
+                    if (resBySlotAndLane.TryGetValue((slot.SlotStartUtc, lane.Id), out var c))
                     {
-                        Title = $"Slot {t:HH:mm}",
-                        Start = startUtc,
-                        End = DateTime.SpecifyKind(t.Add(SlotLength), DateTimeKind.Local).ToUniversalTime(),
-                        AvailableSlots = 1000
-                    });
+                        slot.LaneCounts[lane.Id] = c;
+                    }
                 }
             }
 
-            if (toAdd.Count > 0)
-            {
-                _db.Sessions.AddRange(toAdd);
-                await _db.SaveChangesAsync();
-            }
-        }
-
-        private async Task<IndexViewModel> BuildViewModel(DateTime date)
-        {
-            await EnsureLanesAsync();
-            await EnsureDailySlots(date);
-
-            var (start, end) = GetDailyRange(date.DayOfWeek);
-            var rangeStartUtc = DateTime.SpecifyKind(date.Date.Add(start), DateTimeKind.Local).ToUniversalTime();
-            var rangeEndUtc = DateTime.SpecifyKind(date.Date.Add(end), DateTimeKind.Local).ToUniversalTime();
-
-            var sessions = await _db.Sessions
-                .Where(s => s.Start >= rangeStartUtc && s.End <= rangeEndUtc)
-                .OrderBy(s => s.Start)
-                .ToListAsync();
-
-            var lanes = await _db.Lanes.OrderBy(l => l.Id).Take(6).ToListAsync();
-            var sessionIds = sessions.Select(s => s.Id).ToList();
-
-            var reservations = await _db.Reservations
-                .Where(r => r.SessionId != null && r.LaneId != null && sessionIds.Contains(r.SessionId.Value))
-                .ToListAsync();
-
-            var laneCounts = reservations
-                .GroupBy(r => (r.SessionId!.Value, r.LaneId!.Value))
-                .ToDictionary(g => g.Key, g => g.Count());
-
             var userId = HttpContext.Session.GetInt32("UserId");
-
-            var slots = sessions.Select(s => new SlotRow
-            {
-                Session = s,
-                LaneCounts = lanes.ToDictionary(l => l.Id, l => laneCounts.TryGetValue((s.Id, l.Id), out var c) ? c : 0)
-            }).ToList();
 
             return new IndexViewModel
             {
@@ -187,60 +173,46 @@ namespace Reservations.Controllers
                 return RedirectToAction(nameof(Index), new { date = date.ToString("yyyy-MM-dd") });
             }
 
-            await EnsureDailySlots(date);
-
             var startLocal = date.Date.Add(startTime);
             var endLocal = date.Date.Add(endTime);
-            var startUtc = DateTime.SpecifyKind(startLocal, DateTimeKind.Local).ToUniversalTime();
-            var endUtc = DateTime.SpecifyKind(endLocal, DateTimeKind.Local).ToUniversalTime();
 
-            var sessions = await _db.Sessions
-                .Where(s => s.Start >= startUtc && s.End <= endUtc)
-                .OrderBy(s => s.Start)
-                .ToListAsync();
-
-            if (sessions.Count == 0)
+            var slots = new List<DateTime>();
+            for (var t = startLocal; t < endLocal; t = t.Add(SlotLength))
             {
-                TempData["Error"] = "Brak slotów w wybranym zakresie.";
-                return RedirectToAction(nameof(Index), new { date = date.ToString("yyyy-MM-dd") });
+                slots.Add(DateTime.SpecifyKind(t, DateTimeKind.Local).ToUniversalTime());
             }
 
-            foreach (var s in sessions)
+            // Check availability using SlotStart on reservations
+            foreach (var slotUtc in slots)
             {
-                var count = await _db.Reservations.CountAsync(r => r.SessionId == s.Id && r.LaneId == laneId);
+                var count = await _db.Reservations.CountAsync(r => r.LaneId == laneId && r.SlotStart == slotUtc);
                 if (count >= lane.Capacity)
                 {
-                    TempData["Error"] = $"Tor zajêty o {s.Start.ToLocalTime():HH:mm}.";
+                    TempData["Error"] = $"Tor zajêty o {slotUtc.ToLocalTime():HH:mm}.";
                     return RedirectToAction(nameof(Index), new { date = date.ToString("yyyy-MM-dd") });
                 }
 
-                var already = await _db.Reservations.FirstOrDefaultAsync(r => r.SessionId == s.Id && r.LaneId == laneId && r.UserId == userId.Value);
+                var already = await _db.Reservations.FirstOrDefaultAsync(r => r.LaneId == laneId && r.SlotStart == slotUtc && r.UserId == userId.Value);
                 if (already != null)
                 {
-                    TempData["Info"] = $"Masz ju¿ rezerwacjê na {s.Start.ToLocalTime():HH:mm}.";
+                    TempData["Info"] = $"Masz ju¿ rezerwacjê na {slotUtc.ToLocalTime():HH:mm}.";
                     return RedirectToAction(nameof(Index), new { date = date.ToString("yyyy-MM-dd") });
                 }
             }
 
-            foreach (var s in sessions)
+            // Create reservations per slot using reservation service
+            foreach (var slotUtc in slots)
             {
-                _db.Reservations.Add(new Reservation
-                {
-                    UserId = userId.Value,
-                    SessionId = s.Id,
-                    LaneId = laneId,
-                    CreatedAt = DateTime.UtcNow
-                });
+                await _reservationService.CreateLaneReservationAsync(userId.Value, laneId, slotUtc);
             }
 
-            await _db.SaveChangesAsync();
             TempData["Info"] = "Zarezerwowano wybrany zakres.";
             return RedirectToAction(nameof(Index), new { date = date.ToString("yyyy-MM-dd") });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UnreserveLane(int sessionId, int laneId)
+        public async Task<IActionResult> UnreserveLane(DateTime slotStart, int laneId)
         {
             var userId = HttpContext.Session.GetInt32("UserId");
             if (userId == null)
@@ -248,20 +220,56 @@ namespace Reservations.Controllers
                 return RedirectToAction("Login", "Account", new { returnUrl = Url.Action("Index", "LaneReservations") });
             }
 
-            var reservation = await _db.Reservations.FirstOrDefaultAsync(r => r.SessionId == sessionId && r.LaneId == laneId && r.UserId == userId.Value);
+            var slotUtc = DateTime.SpecifyKind(slotStart, DateTimeKind.Local).ToUniversalTime();
+            var reservation = await _db.Reservations.FirstOrDefaultAsync(r => r.SlotStart == slotUtc && r.LaneId == laneId && r.UserId == userId.Value);
             if (reservation == null)
             {
                 TempData["Info"] = "Brak Twojej rezerwacji w tym slocie.";
                 return RedirectToAction(nameof(Index));
             }
 
-            var session = await _db.Sessions.FindAsync(sessionId);
-            var dateParam = session?.Start.ToLocalTime().ToString("yyyy-MM-dd");
+            await _reservationService.CancelReservationAsync(reservation.Id);
+            return RedirectToAction(nameof(Index), new { date = slotUtc.ToLocalTime().ToString("yyyy-MM-dd") });
+        }
 
-            _db.Reservations.Remove(reservation);
-            await _db.SaveChangesAsync();
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ReserveSlot(DateTime slotStart, int laneId)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (userId == null)
+            {
+                return RedirectToAction("Login", "Account", new { returnUrl = Url.Action("Index", "LaneReservations") });
+            }
 
-            return RedirectToAction(nameof(Index), new { date = dateParam });
+            var lane = await _db.Lanes.FindAsync(laneId);
+            if (lane == null)
+            {
+                TempData["Error"] = "Wybrany tor nie istnieje.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var slotUtc = DateTime.SpecifyKind(slotStart, DateTimeKind.Local).ToUniversalTime();
+
+            // Check capacity
+            var count = await _db.Reservations.CountAsync(r => r.LaneId == laneId && r.SlotStart == slotUtc);
+            if (count >= lane.Capacity)
+            {
+                TempData["Error"] = "Tor jest ju¿ zajêty w tym slocie.";
+                return RedirectToAction(nameof(Index), new { date = slotUtc.ToLocalTime().ToString("yyyy-MM-dd") });
+            }
+
+            // Check existing for user
+            var already = await _db.Reservations.FirstOrDefaultAsync(r => r.LaneId == laneId && r.SlotStart == slotUtc && r.UserId == userId.Value);
+            if (already != null)
+            {
+                TempData["Info"] = "Masz ju¿ rezerwacjê w tym slocie.";
+                return RedirectToAction(nameof(Index), new { date = slotUtc.ToLocalTime().ToString("yyyy-MM-dd") });
+            }
+
+            await _reservationService.CreateLaneReservationAsync(userId.Value, laneId, slotUtc);
+            TempData["Info"] = "Zarezerwowano tor.";
+            return RedirectToAction(nameof(Index), new { date = slotUtc.ToLocalTime().ToString("yyyy-MM-dd") });
         }
     }
 }

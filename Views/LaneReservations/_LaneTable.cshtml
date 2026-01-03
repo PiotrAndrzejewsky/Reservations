@@ -31,9 +31,37 @@
             {
                 var count = slot.LaneCounts.TryGetValue(lane.Id, out var c) ? c : 0;
                 var isFull = count >= lane.Capacity;
+                var userId = Model.UserId;
+                bool userReserved = false;
+                if (userId != null)
+                {
+                    // check if the user has a reservation in this slot
+                    var db = Context.RequestServices.GetService(typeof(Reservations.Data.ReservationsDbContext)) as Reservations.Data.ReservationsDbContext;
+                    userReserved = db?.Reservations.Any(r => r.LaneId == lane.Id && r.SlotStart == slot.SlotStartUtc && r.UserId == userId) ?? false;
+                }
+
                 <td class="lane-cell @(isFull ? "full" : "")">
                     <div class="lane-count">@count / @lane.Capacity</div>
                     <div class="lane-status @(isFull ? "busy" : "free")">@(isFull ? "Zajêty" : "Wolny")</div>
+
+                    @if (userId != null && !userReserved && !isFull)
+                    {
+                        <form asp-action="ReserveSlot" method="post" class="inline-form">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="slotStart" value="@slot.SlotStartUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")" />
+                            <input type="hidden" name="laneId" value="@lane.Id" />
+                            <button class="btn btn-primary">Zarezerwuj</button>
+                        </form>
+                    }
+                    else if (userId != null && userReserved)
+                    {
+                        <form asp-action="UnreserveLane" method="post" class="inline-form">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="slotStart" value="@slot.SlotStartUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")" />
+                            <input type="hidden" name="laneId" value="@lane.Id" />
+                            <button class="btn btn-warning">Anuluj</button>
+                        </form>
+                    }
                 </td>
             }
         </tr>

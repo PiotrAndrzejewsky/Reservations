@@ -27,15 +27,6 @@ namespace Reservations.Data
                 new Role { Id = 3, Name = "User" }
             );
 
-            modelBuilder.Entity<Lane>().HasData(
-                new Lane { Id = 1, Name = "Tor 1", Capacity = 1 },
-                new Lane { Id = 2, Name = "Tor 2", Capacity = 1 },
-                new Lane { Id = 3, Name = "Tor 3", Capacity = 1 },
-                new Lane { Id = 4, Name = "Tor 4", Capacity = 1 },
-                new Lane { Id = 5, Name = "Tor 5", Capacity = 1 },
-                new Lane { Id = 6, Name = "Tor 6", Capacity = 1 }
-            );
-
             // Seed initial admin user: username=admin, password=admin
             string HashPassword(string password)
             {
@@ -55,6 +46,12 @@ namespace Reservations.Data
                     PasswordHash = HashPassword("admin")
                 }
             );
+
+            // Map SlotStart as UTC timestamp column
+            modelBuilder.Entity<Reservation>(eb =>
+            {
+                eb.Property(r => r.SlotStart).HasColumnType("timestamp with time zone").IsRequired(false);
+            });
         }
     }
 }

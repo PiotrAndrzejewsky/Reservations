@@ -12,20 +12,66 @@
 <table class="session-table">
     <thead>
         <tr>
-            <th>Title</th>
+            <th>Tytu³</th>
             <th>Start</th>
-            <th>End</th>
-            <th>Slots</th>
+            <th>Koniec</th>
+            <th>Miejsca</th>
+            <th>Akcje</th>
         </tr>
     </thead>
     <tbody>
-    @foreach (var s in Model.Sessions)
+    @foreach(var s in Model.Sessions)
     {
         <tr>
             <td>@s.Title</td>
             <td>@s.Start.ToLocalTime()</td>
             <td>@s.End.ToLocalTime()</td>
-            <td>@s.AvailableSlots</td>
+            <td>
+                @{ var reserved = Context.RequestServices.GetService(typeof(Reservations.Data.ReservationsDbContext)) as Reservations.Data.ReservationsDbContext;
+                   var count = reserved?.Reservations.Count(r => r.SessionId == s.Id) ?? 0; }
+                @count / @s.AvailableSlots
+            </td>
+            <td>
+                @{
+                    var userId = Context.Session.GetInt32("UserId");
+                    var roleId = Context.Session.GetInt32("RoleId");
+                    bool isTrainer = roleId == 2;
+                    bool isAdmin = roleId == 1;
+                    bool isLoggedIn = userId != null;
+                    bool hasReserved = false;
+                    if (isLoggedIn)
+                    {
+                        var db = Context.RequestServices.GetService(typeof(Reservations.Data.ReservationsDbContext)) as Reservations.Data.ReservationsDbContext;
+                        hasReserved = db?.Reservations.Any(r => r.SessionId == s.Id && r.UserId == userId) ?? false;
+                    }
+                }
+
+                @if (isLoggedIn && !isTrainer && !hasReserved)
+                {
+                    <form asp-action="Reserve" method="post" style="display:inline">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="sessionId" value="@s.Id" />
+                        <button class="btn" type="submit">Zarezerwuj</button>
+                    </form>
+                }
+                else if (isLoggedIn && !isTrainer && hasReserved)
+                {
+                    <form asp-action="Unreserve" method="post" style="display:inline">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="sessionId" value="@s.Id" />
+                        <button class="btn" type="submit">Anuluj rezerwacjê</button>
+                    </form>
+                }
+
+                @if (isAdmin)
+                {
+                    <form asp-action="DeleteSession" method="post" style="display:inline; margin-left:8px;">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="sessionId" value="@s.Id" />
+                        <button class="btn btn-danger" type="submit">Usuñ</button>
+                    </form>
+                }
+            </td>
         </tr>
     }
     </tbody>
